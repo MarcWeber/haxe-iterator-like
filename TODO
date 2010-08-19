@@ -1,0 +1,7 @@
+- add benchmarking (high stack level so that expensiveness of Exceptions is a penalty)
+- add implementation of EIterator returning null on end of iterator condition
+- add implementation of EIterator returning EOF value on end of iterator
+  condition - cause everything is untyped anyway.
+
+- benchmark more
+- benchmark stax
