@@ -102,6 +102,9 @@ class Test {
   static public function runTest(testData:TestData, testI:TestCases, stack){
     var time:Float = 0;
     var n;
+
+    // TODO testI.div() > 1 is unfair cause less iterations take place.
+    // Maybe that's because .count outperforms the other implementations when using Stax?
     var d = div() * testI.div();
 
     var items_to_process = 100 * 250 / d;
@@ -113,7 +116,7 @@ class Test {
     // however that's not what you usually do.
     // I don't want to influence the results. Doing copy & paste for that reason.
 
-    var start = target()+";"+testI.implementation()+";";
+    var start = target()+";"+testI.implementation()+" extra div "+testI.div()+"+;";
 
     // test mapMapFoldSumData
     var na ="mapMapFoldSumData";
