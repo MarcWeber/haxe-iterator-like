@@ -38,8 +38,9 @@ class ValueIteratorExtension{
     return function(){
       while (true){
         var e=next();
-        if (p(e))
-          return e;
+        if (e == null)
+          return null;
+        if (p(e)) return e;
       }
       return null; // never rearched
     }
@@ -121,6 +122,17 @@ class ValueIteratorExtension{
     var a = new Array();
     ValueIteratorExtension.each(next, function(n){ a.push(n); } );
     return a;
+  }
+
+  static public function length<T>(next:VIterator<T>):Int{
+    var c = 0;
+    while (true){
+      var n = next();
+      if (n == null)
+        break;
+      c++;
+    }
+    return c;
   }
 
   // you should not change the array while iterating

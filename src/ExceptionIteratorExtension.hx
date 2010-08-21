@@ -131,6 +131,18 @@ class EIteratorExtensions{
     return a;
   }
 
+  static public function length<T>(next:EIterator<T>):Int{
+    var c = 0;
+    try{
+      while (true){
+        next(); c++;
+      }
+      return null; // never rearched
+    }catch(e:EIteratorEOI){
+      return return c;
+    }
+  }
+
   // you should not change the array while iterating
   static public function arrayToEIterator<T>(a:Array<T>):EIterator<T>{
     return function(){

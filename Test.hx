@@ -22,11 +22,19 @@ class Test {
       // return { time:  Date.now().getTime() - start, result: r };
     }
   }
-  static public function bench(name:String, n:Int, f:Void -> Dynamic){
-      println(name+" stack:"+n);
-      var r = benchStackN(n, f);
-      println("ok, time: "+r.time+" result: "+r.result);
-      csv += ";t: "+r.time+";"+r.result;
+  static public function bench(mult, name:String, n:Int, f:Void -> Dynamic){
+      var e:Dynamic = "exception";
+      var r = {
+        { time: -1., result: e }
+      };
+      try{
+        r = benchStackN(n, f);
+        r.time *= mult;
+        println("ok, time: "+r.time+" result: "+r.result);
+        csv += ";"+r.time+";"+r.result;
+      }catch(e:TestSkipped){
+        csv += ";skipped;exception";
+      }
       return r.time;
   }
 
@@ -50,7 +58,9 @@ class Test {
     var length = 16;
     var a=new Array();
     var n;
-    for (n in 1...15){
+    var c = #if php 14 #else 15 #end;
+
+    for (n in 1...c){
       var i;
       var ra = new Array();
       for (i in 1...length)
@@ -61,7 +71,7 @@ class Test {
     }
 
     return {
-      mapMapFoldSumData:  a
+      mapMapFoldSumData: a
     }
   }
 
@@ -82,6 +92,8 @@ class Test {
     return 100;
 #elseif flash9
     return 10;
+#elseif php
+    return 400;
 #else
     return 1;
 #end
@@ -90,15 +102,55 @@ class Test {
   static public function runTest(testData:TestData, testI:TestCases, stack){
     var time:Float = 0;
     var n;
-    var d = div();
+    var d = div() * testI.div();
 
-    var items_to_process = 1000 * 250 / d;
+    var items_to_process = 100 * 250 / d;
+
+    var b = function(name){
+    }
+
+    // reflection could tidy up the code and remove duplication
+    // however that's not what you usually do.
+    // I don't want to influence the results. Doing copy & paste for that reason.
+
+    var start = target()+";"+testI.implementation()+";";
 
     // test mapMapFoldSumData
+    var na ="mapMapFoldSumData";
+    csv += csvSep+start+na;
     for (n in 0 ... testData.mapMapFoldSumData.length){
       var a = testData.mapMapFoldSumData[n];
-      time = bench("mapMapFoldSumData", stack,  times( Std.int(items_to_process / a.length), function(){ return testI.mapMapFoldSum(a); }));
+      println(n+" "+na+" "+a.length);
+      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.mapMapFoldSum(n); }));
     }
+
+    // test sum
+    var na ="sum";
+    csv += csvSep+start+na;
+    for (n in 0 ... testData.mapMapFoldSumData.length){
+      var a = testData.mapMapFoldSumData[n];
+      println(n+" "+na+" "+a.length);
+      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.sum(n); }));
+    }
+
+    // test filterKeepMany
+    var na ="filterKeepMany";
+    csv += csvSep+start+na;
+    for (n in 0 ... testData.mapMapFoldSumData.length){
+      var a = testData.mapMapFoldSumData[n];
+      println(n+" "+na+" "+a.length);
+      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.filterKeepMany(n); }));
+    }
+
+    // test filterKeepAlmostNone
+    var na ="filterKeepAlmostNone";
+    csv += csvSep+start+na;
+    for (n in 0 ... testData.mapMapFoldSumData.length){
+      var a = testData.mapMapFoldSumData[n];
+      println(n+" "+na+" "+a.length);
+      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.filterKeepAlmostNone(n); }));
+    }
+
   }
 
   static public function closureTest(){
@@ -133,18 +185,17 @@ class Test {
     var a:Array<Int> = [ 1, 2, 3 ];
 
     trace("running tests on target "+target());
-    csv += target()+csvSep;
 
 
     // generate test data
     var testData = null;
-    bench("generating test data ", 0,  function(){ testData = generateTestData(); });
-
+    trace("generating test data");
+    testData = generateTestData(); 
     csv += csvSep;
 
 
     // header for test
-    csv += "benchmark";
+    csv += "target;implementation;test";
     for (x in testData.mapMapFoldSumData){
       csv += ";timing;count="+x.length;
     }
@@ -153,13 +204,16 @@ class Test {
     // test
     // WHY DO I NEED CASTS HERE ?? WTF.
     var testImplementations:Array<TestCases> = [
-      cast(new ExceptionIteratorExtensionTest(0)),
-      cast(new ExceptionIteratorExtensionTest(50)),
-      cast(new ExceptionIteratorExtensionTest(200)),
-      cast(new ExceptionIteratorExtensionTest(500)),
-      cast(new ValueIteratorExtensionTest()),
-      cast(new StdTest())
-      // cast(new StaxFoldableTest())
+      cast(new StaxFoldableTest(testData)),
+      cast(new ExceptionIteratorExtensionTest(testData, 0)),
+      cast(new ExceptionIteratorExtensionTest(testData, 50)),
+      cast(new ExceptionIteratorExtensionTest(testData, 200)),
+      cast(new ExceptionIteratorExtensionTest(testData, 500)),
+      cast(new TExceptionIteratorExtensionTest(testData, 0)),
+      cast(new TExceptionIteratorExtensionTest(testData, 200)),
+      cast(new ValueIteratorExtensionTest(testData)),
+      cast(new ManualTest(testData)),
+      cast(new StdTest(testData))
       // Stax foldable test
       // Stax iterators test
       // more test
@@ -168,9 +222,9 @@ class Test {
     testImplementations = testImplementations.concat(testImplementations);
 
     for (testI in testImplementations){
+      csv += ";"+target();
       trace("");
       trace(" ==> testing implementation : "+testI.implementation());
-      csv += ";"+testI.implementation();
       runTest(testData, testI, testI.stack());
       csv += csvSep;
     }

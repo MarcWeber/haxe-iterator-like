@@ -1,4 +1,5 @@
 -cp src
--cp stax
+-cp stax/src/main/haxe
+-cp more
 -neko Test.n
 -main Test
