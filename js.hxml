@@ -1,3 +1,4 @@
+--remap neko:js
 -main Test
 -cp src
 --js-namespace namespace

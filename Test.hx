@@ -6,6 +6,9 @@ using ValueIteratorExtension;
 
 class Test {
 
+  static public var csvSep:String;
+  
+
   // allow testing deep stacks to cause penalty for EIterator
   // n: stack depth
   // f: operation
@@ -13,9 +16,9 @@ class Test {
     if (n > 0)
       return benchStackN(n-1, f);
     else {
-      var start = neko.Sys.time(); //  Date.now().getTime();
+      var start = time(); //  Date.now().getTime();
       var r = f();
-      return { time: 1000 * (neko.Sys.time() - start), result: r };
+      return { time: 1000 * (time() - start), result: r };
       // return { time:  Date.now().getTime() - start, result: r };
     }
   }
@@ -37,10 +40,10 @@ class Test {
     "php"
 #elseif cpp
     "cpp"
-#elseif flash
+#elseif flash9
     "flash"
 #end
-    ;
+    + " nr tests / " + div();
   }
 
   static public function generateTestData():TestData{
@@ -72,18 +75,29 @@ class Test {
     }
   }
 
+
+  static public function div(){
+#if js
+    // js is slow, so divide by 100
+    return 100;
+#elseif flash9
+    return 10;
+#else
+    return 1;
+#end
+  }
+
   static public function runTest(testData:TestData, testI:TestCases, stack){
     var time:Float = 0;
     var n;
+    var d = div();
 
-    var items_to_process = 1000 * 250;
+    var items_to_process = 1000 * 250 / d;
 
     // test mapMapFoldSumData
     for (n in 0 ... testData.mapMapFoldSumData.length){
-      if (time < 10000){
-        var a = testData.mapMapFoldSumData[n];
-        time = bench("mapMapFoldSumData", stack,  times( Std.int(items_to_process / a.length), function(){ return testI.mapMapFoldSum(a); }));
-      }
+      var a = testData.mapMapFoldSumData[n];
+      time = bench("mapMapFoldSumData", stack,  times( Std.int(items_to_process / a.length), function(){ return testI.mapMapFoldSum(a); }));
     }
   }
 
@@ -105,6 +119,12 @@ class Test {
     untyped __call__("ini_set", "memory_limit", "2000M" );
 #end
 
+#if js
+    csvSep = "br";
+#else
+    csvSep = "\n";
+#end
+
     csv = "";
 
     var add = function(x){ return x + 1; };
@@ -113,21 +133,22 @@ class Test {
     var a:Array<Int> = [ 1, 2, 3 ];
 
     trace("running tests on target "+target());
-    csv += target()+"\n";
+    csv += target()+csvSep;
 
 
     // generate test data
     var testData = null;
     bench("generating test data ", 0,  function(){ testData = generateTestData(); });
 
-    csv += "\n";
+    csv += csvSep;
 
 
-    // header for tests
+    // header for test
+    csv += "benchmark";
     for (x in testData.mapMapFoldSumData){
       csv += ";timing;count="+x.length;
     }
-    csv += "\n";
+    csv += csvSep;
 
     // test
     // WHY DO I NEED CASTS HERE ?? WTF.
@@ -137,8 +158,8 @@ class Test {
       cast(new ExceptionIteratorExtensionTest(200)),
       cast(new ExceptionIteratorExtensionTest(500)),
       cast(new ValueIteratorExtensionTest()),
-      cast(new StdTest()),
-      cast(new StaxFoldableTest())
+      cast(new StdTest())
+      // cast(new StaxFoldableTest())
       // Stax foldable test
       // Stax iterators test
       // more test
@@ -151,11 +172,14 @@ class Test {
       trace(" ==> testing implementation : "+testI.implementation());
       csv += ";"+testI.implementation();
       runTest(testData, testI, testI.stack());
-      csv += "\n";
+      csv += csvSep;
     }
 
 #if js
-    trace(csv);
+    for (l in csv.split("\n"))
+      trace(l);
+#elseif flash9
+    println(csv);
 #else
     writeFile("results.csv", [csv]);
 #end
@@ -172,12 +196,33 @@ class Test {
   }    
 
 
+#if (!(js || flash9))
   static function writeFile(path, lines:Array<String>){
     var f =neko.io.File.write(path, true);
     for (s in lines) f.writeString(s+"\n");
     f.close();
   }
-  static public function println(s){ neko.Lib.println(s); }
+#end
+
+  static public function println(s){
+#if js
+    trace(s);
+#elseif flash9
+    flash.Lib.trace(s);
+#else
+    neko.Lib.println(s);
+#end
+  }
+
+
+
+  static public function time(){
+#if (js || flash9)
+    return Date.now().getTime();
+#else
+    return neko.Sys.time();
+#end
+  }
 
 
 }
