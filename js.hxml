@@ -1,0 +1,4 @@
+-main Test
+-cp src
+--js-namespace namespace
+-js Test.js

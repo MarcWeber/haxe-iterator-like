@@ -20,6 +20,10 @@
 
   CODE untested!
 
+  Mark (Dykam) is right: throwing Exceptions can be expensive.
+  So I expect this code to pay off only on very long lists..
+
+
 */
 
 class EIteratorEOI {

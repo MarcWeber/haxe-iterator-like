@@ -1,0 +1,5 @@
+-main Test
+-cp src
+--php-front index.php
+--remap neko:php
+-php php
