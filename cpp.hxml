@@ -1,4 +1,4 @@
--main Test
 --remap neko:cpp
--cpp cpp
 -cp src
+-cpp cpp
+-main Test

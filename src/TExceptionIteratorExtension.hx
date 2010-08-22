@@ -35,25 +35,34 @@ interface TEIterator<T> {
   function next():T;
 }
 
+class TEIteratorClass<T> implements TEIterator<T> {
+  var _next:Void->T;
+  public function new(next:Void->T){
+    _next = next;
+  }
+  public function next():T{
+    return _next();
+  }
+}
+
 class TEIteratorExtensions{
 
   static public function map<A,B>(i:TEIterator<A>, f:A->B): TEIterator<B> {
-    return cast({
-      next: function(){ return f(i.next()); }
-    });
+    return fToEIter(
+      function(){ return f(i.next()); }
+    );
   } 
 
   static public function filter<T>( i:TEIterator<T>, p: T -> Bool ):TEIterator<T>{
-    return cast({
-      next: function(){
+    return new TEIteratorClass(
+      function(){
         while (true){
           var e=i.next();
           if (p(e))
             return e;
         }
         return null; // never rearched
-      }
-    });
+      });
   }
 
   static public function each<T>(i: TEIterator<T>, f:T->Void ){
@@ -65,28 +74,26 @@ class TEIteratorExtensions{
   }
 
   static public function take<T>(i:TEIterator<T>, n:Int):TEIterator<T>{
-    return cast({
-      next: function(){
+    return fToEIter(
+      function(){
         if (n-- <= 0)
           throw new TEIteratorEOI(); // why don't I need a colon here?
         else {
           return i.next();
         }
-      }
-    });
+      });
   }
 
   static public function drop<T>(i:TEIterator<T>, n:Int):TEIterator<T>{
-    return cast({
-      next: function(){
+    return fToEIter(
+      function(){
         if (n > 0){
           while (n-- > 0){
             i.next();
           }
         }
         return i.next();
-      }
-    });
+      });
   }
 
   // to Std Iterator
@@ -111,13 +118,12 @@ class TEIteratorExtensions{
 
   // Std to TEIterator
   static public function eiter<T>(iter:Iterator<T>):TEIterator<T>{
-    return cast({
-      next: function(){
+    return fToEIter(
+      function(){
         if (iter.hasNext())
           return iter.next();
         else throw new TEIteratorEOI();
-      }
-    });
+      });
   }
 
   static public function zip2<A,B,C>(
@@ -125,9 +131,9 @@ class TEIteratorExtensions{
       i2:TEIterator<B>,
       f:A -> B -> C
   ) :TEIterator<C> {
-    return cast({
-      next: function(){ return f(i1.next(), i2.next()); }
-    });
+    return fToEIter(
+      function(){ return f(i1.next(), i2.next()); }
+    );
   }
 
   static public function fold<T,B>(next:TEIterator<T>, f:T -> B -> B, first:B):B{
@@ -151,23 +157,26 @@ class TEIteratorExtensions{
       while (true){
         i.next(); c++;
       }
-      return null; // never rearched
+      return 0; // never rearched
     }catch(e:TEIteratorEOI){
-      return return c;
+      return c;
     }
   }
 
   // you should not change the array while iterating
   static public function arrayToTEIterator<T>(a:Array<T>):TEIterator<T>{
-    return cast({
-      next: function(){
+    return fToEIter(
+      function(){
         var i = 0;
         return function(){
           if (i >= a.length)
             throw new TEIteratorEOI();
           else return a[i++];
         }
-      }()
-    });
+      }());
+  }
+
+  static public function fToEIter<T>(f:Void -> T){
+     return new TEIteratorClass(f);
   }
 }

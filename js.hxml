@@ -1,5 +1,6 @@
 --remap neko:js
--main Test
 -cp src
+-main Test
+-cp stax/src/main/haxe
 --js-namespace namespace
 -js Test.js

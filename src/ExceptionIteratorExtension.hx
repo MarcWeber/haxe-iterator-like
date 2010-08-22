@@ -137,9 +137,9 @@ class EIteratorExtensions{
       while (true){
         next(); c++;
       }
-      return null; // never rearched
+      return 0; // never rearched
     }catch(e:EIteratorEOI){
-      return return c;
+      return c;
     }
   }
 
