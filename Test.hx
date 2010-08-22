@@ -17,7 +17,7 @@ class Test {
       return benchStackN(n-1, f);
     else {
       var start = time(); //  Date.now().getTime();
-      var r = f();
+      var r:Dynamic = f();
       return { time: 1000 * (time() - start), result: r };
       // return { time:  Date.now().getTime() - start, result: r };
     }
@@ -51,8 +51,9 @@ class Test {
 #elseif flash9
     "flash"
 #end
-    + " nr tests / " + div();
+    ;
   }
+
 
   static public function generateTestData():TestData{
     var length = 16;
@@ -88,12 +89,11 @@ class Test {
 
   static public function div(){
 #if js
-    // js is slow, so divide by 100
-    return 100;
+    return 80000;
 #elseif flash9
     return 10;
 #elseif php
-    return 400;
+    return 10000;
 #else
     return 1;
 #end
@@ -116,7 +116,7 @@ class Test {
     // however that's not what you usually do.
     // I don't want to influence the results. Doing copy & paste for that reason.
 
-    var start = target()+";"+testI.implementation()+" extra div "+testI.div()+"+;";
+    var start = target()+"/ "+div()+";"+testI.implementation()+" extra div "+testI.div()+"+;";
 
     // test mapMapFoldSumData
     var na ="mapMapFoldSumData";
@@ -207,13 +207,19 @@ class Test {
     // test
     // WHY DO I NEED CASTS HERE ?? WTF.
     var testImplementations:Array<TestCases> = [
+#if php
+#elseif cpp
+#else
       cast(new StaxFoldableTest(testData)),
+#end
+#if !cpp
       cast(new ExceptionIteratorExtensionTest(testData, 0)),
       cast(new ExceptionIteratorExtensionTest(testData, 50)),
       cast(new ExceptionIteratorExtensionTest(testData, 200)),
       cast(new ExceptionIteratorExtensionTest(testData, 500)),
       cast(new TExceptionIteratorExtensionTest(testData, 0)),
       cast(new TExceptionIteratorExtensionTest(testData, 200)),
+#end
       cast(new ValueIteratorExtensionTest(testData)),
       cast(new ManualTest(testData)),
       cast(new StdTest(testData))
@@ -224,7 +230,7 @@ class Test {
 
     testImplementations = testImplementations.concat(testImplementations);
 
-    for (testI in testImplementations){
+    for (testI in testImplementations.iterator()){
       csv += ";"+target();
       trace("");
       trace(" ==> testing implementation : "+testI.implementation());
@@ -238,7 +244,7 @@ class Test {
 #elseif flash9
     println(csv);
 #else
-    writeFile("results.csv", [csv]);
+    writeFile("results-"+target()+".csv", [csv]);
 #end
 
     /*
