@@ -91,7 +91,7 @@ class Test {
 #if js
     return 80000;
 #elseif flash9
-    return 10;
+    return 50;
 #elseif php
     return 10000;
 #else
@@ -107,7 +107,7 @@ class Test {
     // Maybe that's because .count outperforms the other implementations when using Stax?
     var d = div() * testI.div();
 
-    var items_to_process = 100 * 250 / d;
+    var items_to_process = 10000 * 250 / d;
 
     var b = function(name){
     }
@@ -207,6 +207,7 @@ class Test {
     // test
     // WHY DO I NEED CASTS HERE ?? WTF.
     var testImplementations:Array<TestCases> = [
+      cast(new EnumeratorTest(testData)),
 #if php
 #elseif cpp
 #else
@@ -214,12 +215,16 @@ class Test {
 #end
 #if !cpp
       cast(new ExceptionIteratorExtensionTest(testData, 0)),
-      cast(new ExceptionIteratorExtensionTest(testData, 50)),
+
+      // cast(new ExceptionIteratorExtensionTest(testData, 50)),
       cast(new ExceptionIteratorExtensionTest(testData, 200)),
+
+      // don't think your stack is higher than 500
       cast(new ExceptionIteratorExtensionTest(testData, 500)),
-      cast(new TExceptionIteratorExtensionTest(testData, 0)),
-      cast(new TExceptionIteratorExtensionTest(testData, 200)),
+      // cast(new TExceptionIteratorExtensionTest(testData, 0)),
+      // cast(new TExceptionIteratorExtensionTest(testData, 200)),
 #end
+      cast(new TCExceptionIteratorExtensionTest(testData, 200)),
       cast(new ValueIteratorExtensionTest(testData)),
       cast(new ManualTest(testData)),
       cast(new StdTest(testData))
@@ -228,7 +233,14 @@ class Test {
       // more test
     ];
 
-    testImplementations = testImplementations.concat(testImplementations);
+    /*
+    testImplementations = [
+      cast(new TExceptionIteratorExtensionTest(testData, 200)),
+      cast(new TCExceptionIteratorExtensionTest(testData, 200))
+    ];
+    */
+
+    // testImplementations = testImplementations.concat(testImplementations);
 
     for (testI in testImplementations.iterator()){
       csv += ";"+target();
