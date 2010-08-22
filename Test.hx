@@ -2,7 +2,9 @@ import TestCases;
 import ValueIteratorExtension;
 import neko.Lib;
 
-using ValueIteratorExtension;
+
+typedef APPLY<I,E> = I -> (E -> Void) -> Void
+
 
 class Test {
 
@@ -22,7 +24,7 @@ class Test {
       // return { time:  Date.now().getTime() - start, result: r };
     }
   }
-  static public function bench(mult, name:String, n:Int, f:Void -> Dynamic){
+  static public function bench(times: Int,mult:Int, name:String, n:Int, f:Void -> Dynamic){
       var e:Dynamic = "exception";
       var r = {
         { time: -1., result: e }
@@ -31,7 +33,7 @@ class Test {
         r = benchStackN(n, f);
         r.time *= mult;
         println("ok, time: "+r.time+" result: "+r.result);
-        csv += ";"+r.time+";"+r.result;
+        csv += ";"+r.time+";"+r.result+"("+times+")";
       }catch(e:TestSkipped){
         csv += ";skipped;exception";
       }
@@ -95,7 +97,7 @@ class Test {
 #elseif php
     return 10000;
 #else
-    return 1;
+    return 10;
 #end
   }
 
@@ -109,8 +111,6 @@ class Test {
 
     var items_to_process = 10000 * 250 / d;
 
-    var b = function(name){
-    }
 
     // reflection could tidy up the code and remove duplication
     // however that's not what you usually do.
@@ -118,41 +118,23 @@ class Test {
 
     var start = target()+"/ "+div()+";"+testI.implementation()+" extra div "+testI.div()+"+;";
 
+    var runTest = function(na:String, f){
+      csv += csvSep+start+";"+na;
+      for (n in 0 ... testData.mapMapFoldSumData.length){
+        var a = testData.mapMapFoldSumData[n];
+        println(n+" "+na+" "+a.length);
+        var times_ = Std.int(items_to_process / a.length);
+        if (times_ == 0)
+          times_ = 1;
+        time = bench(times_, d, na, stack, times( times_, function(){ f(n); }));
+      }
+    }
+
     // test mapMapFoldSumData
-    var na ="mapMapFoldSumData";
-    csv += csvSep+start+na;
-    for (n in 0 ... testData.mapMapFoldSumData.length){
-      var a = testData.mapMapFoldSumData[n];
-      println(n+" "+na+" "+a.length);
-      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.mapMapFoldSum(n); }));
-    }
-
-    // test sum
-    var na ="sum";
-    csv += csvSep+start+na;
-    for (n in 0 ... testData.mapMapFoldSumData.length){
-      var a = testData.mapMapFoldSumData[n];
-      println(n+" "+na+" "+a.length);
-      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.sum(n); }));
-    }
-
-    // test filterKeepMany
-    var na ="filterKeepMany";
-    csv += csvSep+start+na;
-    for (n in 0 ... testData.mapMapFoldSumData.length){
-      var a = testData.mapMapFoldSumData[n];
-      println(n+" "+na+" "+a.length);
-      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.filterKeepMany(n); }));
-    }
-
-    // test filterKeepAlmostNone
-    var na ="filterKeepAlmostNone";
-    csv += csvSep+start+na;
-    for (n in 0 ... testData.mapMapFoldSumData.length){
-      var a = testData.mapMapFoldSumData[n];
-      println(n+" "+na+" "+a.length);
-      time = bench(d, na, stack, times( Std.int(items_to_process / a.length), function(){ return testI.filterKeepAlmostNone(n); }));
-    }
+    runTest("mapMapFoldSumData ", function(n){ return testI.mapMapFoldSum(n); });
+    runTest("sum", function(n){ return testI.sum(n); });
+    runTest("filterKeepMany", function(n){ return testI.filterKeepMany(n); } );
+    runTest("filterKeepAlmostNone", function(n){ return testI.filterKeepAlmostNone(n); });
 
   }
 
@@ -198,7 +180,7 @@ class Test {
 
 
     // header for test
-    csv += "target;implementation;test";
+    csv += "target;implementation;test;times run";
     for (x in testData.mapMapFoldSumData){
       csv += ";timing;count="+x.length;
     }
@@ -251,6 +233,7 @@ class Test {
     }
 
 #if js
+    trace("starting trace");
     for (l in csv.split("\n"))
       trace(l);
 #elseif flash9
