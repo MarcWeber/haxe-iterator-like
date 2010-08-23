@@ -1,0 +1,8 @@
+-cp more
+-cp stax/src/main/haxe
+-debug
+--remap neko:flash
+-swf-version 10
+-cp src
+-swf9 Test.swf
+-main Test
