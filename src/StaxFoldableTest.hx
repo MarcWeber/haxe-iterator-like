@@ -20,7 +20,7 @@ class StaxFoldableTest extends TestCases {
     trace("coping arrays to Stax lists");
     var n = 0;
     for (x in td.mapMapFoldSumData){
-      if (n++ > 5) break;
+      if (n++ > 3) break;
       var l = haxe.data.collections.List.nil();
       for (e in x) l = l.add(e);
       mapMapFoldSumData.push(l);

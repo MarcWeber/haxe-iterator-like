@@ -124,7 +124,7 @@ class ValueIteratorExtension{
     return a;
   }
 
-  static public function length<T>(next:VIterator<T>):Int{
+  static public function length_<T>(next:VIterator<T>):Int{
     var c = 0;
     while (true){
       var n = next();

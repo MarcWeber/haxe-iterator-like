@@ -1,6 +1,9 @@
 import TestCases;
 import ValueIteratorExtension;
 import neko.Lib;
+import TestTarget;
+
+using Lambda;
 
 
 typedef APPLY<I,E> = I -> (E -> Void) -> Void
@@ -8,8 +11,7 @@ typedef APPLY<I,E> = I -> (E -> Void) -> Void
 
 class Test {
 
-  static public var csvSep:String;
-  
+  static public var results:TestTarget;
 
   // allow testing deep stacks to cause penalty for EIterator
   // n: stack depth
@@ -24,20 +26,8 @@ class Test {
       // return { time:  Date.now().getTime() - start, result: r };
     }
   }
-  static public function bench(times: Int,mult:Int, name:String, n:Int, f:Void -> Dynamic){
-      var e:Dynamic = "exception";
-      var r = {
-        { time: -1., result: e }
-      };
-      try{
-        r = benchStackN(n, f);
-        r.time *= mult;
-        println("ok, time: "+r.time+" result: "+r.result);
-        csv += ";"+r.time+";"+r.result+"("+times+")";
-      }catch(e:TestSkipped){
-        csv += ";skipped;exception";
-      }
-      return r.time;
+  static public function bench(stack:Int, f:Void -> Dynamic){
+    return benchStackN(stack, f);
   }
 
   static public function target(){
@@ -61,7 +51,7 @@ class Test {
     var length = 16;
     var a=new Array();
     var n;
-    var c = #if php 14 #else 15 #end;
+    var c = #if php 9 #elseif js 9 #else 7 #end;
 
     for (n in 1...c){
       var i;
@@ -70,15 +60,13 @@ class Test {
         ra.push(i);
 
       a.push(ra);
-      length *= 2;
+      length *= 3;
     }
 
     return {
       mapMapFoldSumData: a
     }
   }
-
-  static var csv:String;
 
   static public function times(n:Int, f:Void -> Dynamic){
     return function(){
@@ -91,7 +79,7 @@ class Test {
 
   static public function div(){
 #if js
-    return 80000;
+    return 400; // for IE this should be much more
 #elseif flash9
     return 50;
 #elseif php
@@ -118,20 +106,28 @@ class Test {
 
     var start = target()+"/ "+div()+";"+testI.implementation()+" extra div "+testI.div()+"+;";
 
-    var runTest = function(na:String, f){
-      csv += csvSep+start+";"+na;
+    var runTest = function(n:String, f){
+      var data:Array<TestRunResult> = new Array();
+
       for (n in 0 ... testData.mapMapFoldSumData.length){
         var a = testData.mapMapFoldSumData[n];
-        println(n+" "+na+" "+a.length);
-        var times_ = Std.int(items_to_process / a.length);
+        var count = a.length;
+        println(n+" "+count);
+        var times_ = Std.int(items_to_process / count);
         if (times_ == 0)
           times_ = 1;
-        time = bench(times_, d, na, stack, times( times_, function(){ f(n); }));
+        try{
+          var r = bench(stack, times(times_,  function(){ return f(n); } ));
+          data.push(CountTime({times: times_, count: count, time_ms: r.time / times_}));
+        }catch(e:TestSkipped){
+          data.push(Failed("skipped"));
+        }
       }
+      results.addTest({impl: testI.implementation(), test: n, data: data});
     }
 
     // test mapMapFoldSumData
-    runTest("mapMapFoldSumData ", function(n){ return testI.mapMapFoldSum(n); });
+    runTest("mapMapFoldSumData", function(n){ return testI.mapMapFoldSum(n); });
     runTest("sum", function(n){ return testI.sum(n); });
     runTest("filterKeepMany", function(n){ return testI.filterKeepMany(n); } );
     runTest("filterKeepAlmostNone", function(n){ return testI.filterKeepAlmostNone(n); });
@@ -156,18 +152,8 @@ class Test {
     untyped __call__("ini_set", "memory_limit", "2000M" );
 #end
 
-#if js
-    csvSep = "br";
-#else
-    csvSep = "\n";
-#end
-
-    csv = "";
-
     var add = function(x){ return x + 1; };
     var p   = function(x){ return x > 2; };
-
-    var a:Array<Int> = [ 1, 2, 3 ];
 
     trace("running tests on target "+target());
 
@@ -176,15 +162,8 @@ class Test {
     var testData = null;
     trace("generating test data");
     testData = generateTestData(); 
-    csv += csvSep;
 
 
-    // header for test
-    csv += "target;implementation;test;times run";
-    for (x in testData.mapMapFoldSumData){
-      csv += ";timing;count="+x.length;
-    }
-    csv += csvSep;
 
     // test
     // WHY DO I NEED CASTS HERE ?? WTF.
@@ -193,7 +172,7 @@ class Test {
 #if php
 #elseif cpp
 #else
-      cast(new StaxFoldableTest(testData)),
+      // cast(new StaxFoldableTest(testData)),
 #end
 #if !cpp
       cast(new ExceptionIteratorExtensionTest(testData, 0)),
@@ -217,40 +196,62 @@ class Test {
 
     /*
     testImplementations = [
-      cast(new TExceptionIteratorExtensionTest(testData, 200)),
-      cast(new TCExceptionIteratorExtensionTest(testData, 200))
+      cast(new ExceptionIteratorExtensionTest(testData, 200)),
     ];
     */
 
     // testImplementations = testImplementations.concat(testImplementations);
 
-    for (testI in testImplementations.iterator()){
-      csv += ";"+target();
-      trace("");
-      trace(" ==> testing implementation : "+testI.implementation());
-      runTest(testData, testI, testI.stack());
-      csv += csvSep;
+    // use smallest numbers after runinng each test 4 times.
+    var manyResults = new Array();
+    for (x in 1 ... 4){
+      results = new TestTarget();
+      for (testI in testImplementations.iterator()){
+        trace("");
+        trace(" ==> testing implementation : "+testI.implementation());
+        runTest(testData, testI, testI.stack());
+      }
+      manyResults.push(results);
     }
 
+    var keepBestResults = function(r1: TestTarget, r2:TestTarget){
+
+      var bestTests = new List();
+      var i1 = r1.tests.iterator();
+      var i2 = r2.tests.iterator();
+      while (i1.hasNext() && i2.hasNext()){
+        var t1 = i1.next();
+        var t2 = i2.next();
+        for (n in 0 ... t1.data.length){
+          var d1 = t1.data[n];
+          var d2 = t2.data[n];
+
+          switch (d1){
+            case CountTime(cT1):
+              switch (d2){
+                case CountTime(cT2):
+                  if (cT2.time_ms < cT1.time_ms){
+                    cT1.time_ms = cT2.time_ms;
+                  }
+              default:
+              }
+            default:
+          }
+        }
+      }
+      return r1;
+    }
+
+    results = manyResults.fold(keepBestResults, manyResults[0]);
+
+    var s = haxe.Serializer.run(results);
 #if js
-    trace("starting trace");
-    for (l in csv.split("\n"))
-      trace(l);
+    trace(s);
 #elseif flash9
-    println(csv);
+    println(s);
 #else
-    writeFile("results-"+target()+".csv", [csv]);
+    writeFile("results-"+target()+".data", [s]);
 #end
-
-    /*
-    trace("3,4 expected: "+a.arrayToEIterator().map(add).filter(p).array());
-
-    trace("expected: [1 3 4]");
-    a.arrayToEIterator().zip2(a.arrayToEIterator().filter(p), function(a,b){ return [a,b, a+b]; }).each(function(x){ trace(x); });
-
-    trace("expected: [2 1 3]");
-    a.arrayToEIterator().drop(1).zip2(a.arrayToEIterator().take(1), function(a,b){ return [a,b, a+b]; }).each(function(x){ trace(x); });
-    */
   }    
 
 

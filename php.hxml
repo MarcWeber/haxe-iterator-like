@@ -1,5 +1,6 @@
 -main Test
 -cp src
+-cp more
 --php-front index.php
 --remap neko:php
 -php php

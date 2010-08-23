@@ -20,11 +20,11 @@ class ValueIteratorExtensionTest extends TestCases {
 
   // if mod 10 =0 (returns count)
   public override function filterKeepMany(nr: Int):Int {
-    return td.mapMapFoldSumData[nr].arrayToVIterator().filter(function(x){ return x % 10 == 0; }).length();
+    return td.mapMapFoldSumData[nr].arrayToVIterator().filter(function(x){ return x % 10 == 0; }).length_();
   }
   // if mod 10 !=0 (returns count)
   public override function filterKeepAlmostNone(nr: Int):Int {
-    return td.mapMapFoldSumData[nr].arrayToVIterator().filter(function(x){ return x % 10 != 0; }).length();
+    return td.mapMapFoldSumData[nr].arrayToVIterator().filter(function(x){ return x % 10 != 0; }).length_();
   }
 
 }

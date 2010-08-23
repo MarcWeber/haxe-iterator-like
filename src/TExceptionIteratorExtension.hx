@@ -151,7 +151,8 @@ class TEIteratorExtensions{
     return a;
   }
 
-  static public function length<T>(i:TEIterator<T>):Int{
+  // js does not allow length? (TODO)
+  static public function length_<T>(i:TEIterator<T>):Int{
     var c = 0;
     try{
       while (true){

@@ -41,12 +41,11 @@ class EIteratorExtensions{
 
   static public function filter<T>( next:EIterator<T>, p: T -> Bool ):EIterator<T>{
     return function(){
-      while (true){
+      var e=next();
+      while (!p(e)){
         var e=next();
-        if (p(e))
-          return e;
       }
-      return null; // never rearched
+      return e;
     }
   }
 
@@ -131,7 +130,8 @@ class EIteratorExtensions{
     return a;
   }
 
-  static public function length<T>(next:EIterator<T>):Int{
+  // name length is dropped by js ??!!
+  static public function length_<T>(next:EIterator<T>):Int{
     var c = 0;
     try{
       while (true){
