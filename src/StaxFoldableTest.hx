@@ -34,7 +34,7 @@ class StaxFoldableTest extends TestCases {
 
   public override function mapMapFoldSum(nr:Int):Float {
     // why doesn't it return a Float on its own??? (TODO)
-    return skip(nr).map(function(x){ return x + 20; }).mapTo(haxe.data.collections.List.nil(), function(y){ return y / 2;} ).foldl(0, function(n,r){ return cast(n + r); });
+    return skip(nr).map(function(x){ return x + 20; }).mapTo(haxe.data.collections.List.nil(), function(y){ return y / 2;} ).foldr(0, function(n,r){ return cast(n + r); });
   }
 
   public override function sum(nr: Int):Int{
