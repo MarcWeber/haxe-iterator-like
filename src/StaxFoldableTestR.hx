@@ -4,15 +4,16 @@ import PreludeExtensions;
 import haxe.functional.Foldable;
 using haxe.functional.FoldableExtensions;
 
+// using foldr
 
 
-class StaxFoldableTest extends TestCases {
+class StaxFoldableTestR extends TestCases {
 
   // Stax always makes copies
 
   var mapMapFoldSumData: Array<haxe.data.collections.List<Int>>;
 
-  public override function div(){ return 20; }
+  public override function div(){ return 40; }
 
   public override function new(td:TestData) {
     super(td);
@@ -27,7 +28,7 @@ class StaxFoldableTest extends TestCases {
     }
   }
 
-  public override function implementation(){ return "StaxFoldable (based on lists), only first 7 list lengts are considered. Everything else would be too slow"; }
+  public override function implementation(){ return "StaxFoldable R (based on lists), only first 7 list lengts are considered. Everything else would be too slow"; }
   // this implementation does not depend on stack
   public override function stack(){ return 0; }
 

@@ -9,6 +9,8 @@ class Plot {
     var data = [
       "results-flash.data",
       "results-js-firefox-linux.data",
+      "results-js-webkit-windows.data",
+      "results-js-ie7-windows.data",
       "results-js-opera-linux.data",
       "results-php.data",
       "results-neko.data",
