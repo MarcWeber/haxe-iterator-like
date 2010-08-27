@@ -35,7 +35,10 @@ class StaxFoldableTestL extends TestCases {
 
   public override function mapMapFoldSum(nr:Int):Float {
     // why doesn't it return a Float on its own??? (TODO)
-    return skip(nr).map(function(x){ return x + 20; }).mapTo(haxe.data.collections.List.nil(), function(y){ return y / 2;} ).foldl(0, function(n,r){ return cast(n + r); });
+    // return skip(nr).map(function(x){ return x + 20; }).mapTo(haxe.data.collections.List.nil(), function(y){ return y / 2;} ).foldl(0, function(n,r){ return cast(n + r); });
+
+    // should be using mapTo causet the result should be float. So this test case differs. However I expect this to be slowest anyway
+    return skip(nr).map(function(x){ return x + 20; }).map(function(y){ return Std.int(y / 2);} ).foldl(0, function(n,r){ return cast(n + r); });
   }
 
   public override function sum(nr: Int):Int{
@@ -46,11 +49,11 @@ class StaxFoldableTestL extends TestCases {
 
   // if mod 10 =0 (returns count)
   public override function filterKeepMany(nr: Int):Int {
-    return skip(nr).filter(function(x){ return x % 10 == 0; }).size;
+    return skip(nr).filter(function(x){ return x % 10 != 0; }).size;
   }
   // if mod 10 !=0 (returns count)
   public override function filterKeepAlmostNone(nr: Int):Int {
-    return skip(nr).filter(function(x){ return x % 10 != 0; }).size;
+    return skip(nr).filter(function(x){ return x % 10 == 0; }).size;
   }
 
   public function skip(nr:Int){

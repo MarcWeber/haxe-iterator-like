@@ -5,6 +5,8 @@ import TestTarget;
 
 class Plot {
 
+  static var skip:Array<String>;
+
   static function main() {
     var data = [
       "results-flash.data",
@@ -21,7 +23,14 @@ class Plot {
       "sum", "filterKeepMany",
       "filterKeepAlmostNone",
     ];
-
+    
+    skip = new Array();
+    for (i in neko.Sys.args()){
+      if (i == "--no-stax")
+        skip.push("Stax");
+      if (i == "--no-std")
+        skip.push("Std");
+    }
     for (test in tests){
 
       var plotAll = new Array<String>();
@@ -59,8 +68,15 @@ class Plot {
     for (t in s.tests){
       if (t.test != test)
         continue;
+
+      var c = true;
+      for (s in skip){
+        if (t.impl.indexOf(s) >=0)
+          c = false;
+      }
+      if (!c) continue;
       var data_file = TestTarget.dataOfTest(file, t);
-      gnuplot_lines.push("\""+data_file+"\" with "+( t.impl.indexOf("0") > 0 ? "linespoints" : "lines" ));
+      gnuplot_lines.push("\""+data_file+"\" with "+( t.impl.indexOf("0") >= 0 ? "linespoints" : "lines" ));
 
       Plot.writeFile(data_file,
         t.data.map(function(pt){

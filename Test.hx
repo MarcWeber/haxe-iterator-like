@@ -172,7 +172,8 @@ class Test {
 #if php
 #elseif cpp
 #else
-      // cast(new StaxFoldableTest(testData)),
+      cast(new StaxFoldableTestL(testData)),
+      cast(new StaxFoldableTestR(testData)),
 #end
 #if !cpp
       cast(new ExceptionIteratorExtensionTest(testData, 0)),
@@ -187,8 +188,10 @@ class Test {
 #end
       cast(new TCExceptionIteratorExtensionTest(testData, 200)),
       cast(new ValueIteratorExtensionTest(testData)),
+      cast(new InlinedValueIteratorExtensionTest(testData)),
       cast(new ManualTest(testData)),
-      cast(new StdTest(testData))
+      cast(new StdTest(testData)),
+      cast(new StdDiv10Test(testData))
       // Stax foldable test
       // Stax iterators test
       // more test
@@ -204,7 +207,7 @@ class Test {
 
     // use smallest numbers after runinng each test 4 times.
     var manyResults = new Array();
-    for (x in 1 ... 4){
+    for (x in 1 ... 2){
       results = new TestTarget();
       for (testI in testImplementations.iterator()){
         trace("");
