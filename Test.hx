@@ -1,5 +1,5 @@
-import TestCases;
-import ValueIteratorExtension;
+import e_iterator.TestCases;
+import e_iterator.ValueIteratorExtension;
 import neko.Lib;
 import TestTarget;
 
@@ -16,7 +16,7 @@ class Test {
   // allow testing deep stacks to cause penalty for EIterator
   // n: stack depth
   // f: operation
-  static public function benchStackN(n:Int, f:Void -> Void):{ time: Float, result: Dynamic }{
+  static public function benchStackN(n:Int, f:Void -> Dynamic):{ time: Float, result: Dynamic }{
     if (n > 0)
       return benchStackN(n-1, f);
     else {
@@ -168,30 +168,34 @@ class Test {
     // test
     // WHY DO I NEED CASTS HERE ?? WTF.
     var testImplementations:Array<TestCases> = [
-      cast(new EnumeratorTest(testData)),
+#if ENUMERATOR_LIBRARY
+      cast(new e_iterator.EnumeratorTest(testData)),
+#end
 #if php
 #elseif cpp
 #else
-      cast(new StaxFoldableTestL(testData)),
-      cast(new StaxFoldableTestR(testData)),
+#if STAX_LIBRARY
+      cast(new e_iterator.StaxFoldableTestL(testData)),
+      cast(new e_iterator.StaxFoldableTestR(testData)),
+#end
 #end
 #if !cpp
-      cast(new ExceptionIteratorExtensionTest(testData, 0)),
+      cast(new e_iterator.ExceptionIteratorExtensionTest(testData, 0)),
 
       // cast(new ExceptionIteratorExtensionTest(testData, 50)),
-      cast(new ExceptionIteratorExtensionTest(testData, 200)),
+      cast(new e_iterator.ExceptionIteratorExtensionTest(testData, 200)),
 
       // don't think your stack is higher than 500
-      cast(new ExceptionIteratorExtensionTest(testData, 500)),
+      cast(new e_iterator.ExceptionIteratorExtensionTest(testData, 500)),
       // cast(new TExceptionIteratorExtensionTest(testData, 0)),
       // cast(new TExceptionIteratorExtensionTest(testData, 200)),
 #end
-      cast(new TCExceptionIteratorExtensionTest(testData, 200)),
-      cast(new ValueIteratorExtensionTest(testData)),
-      cast(new InlinedValueIteratorExtensionTest(testData)),
-      cast(new ManualTest(testData)),
-      cast(new StdTest(testData)),
-      cast(new StdDiv10Test(testData))
+      cast(new e_iterator.TCExceptionIteratorExtensionTest(testData, 200)),
+      cast(new e_iterator.ValueIteratorExtensionTest(testData)),
+      // cast(new e_iterator.InlinedValueIteratorExtensionTest(testData)),
+      cast(new e_iterator.ManualTest(testData)),
+      cast(new e_iterator.StdTest(testData)),
+      // cast(new e_iterator.StdDiv10Test(testData))
       // Stax foldable test
       // Stax iterators test
       // more test
@@ -209,7 +213,8 @@ class Test {
     var manyResults = new Array();
     for (x in 1 ... 2){
       results = new TestTarget();
-      for (testI in testImplementations.iterator()){
+      var i:Iterator<e_iterator.TestCases> = testImplementations.iterator();
+      for (testI in i){
         trace("");
         trace(" ==> testing implementation : "+testI.implementation());
         runTest(testData, testI, testI.stack());
@@ -260,7 +265,7 @@ class Test {
 
 #if (!(js || flash9))
   static function writeFile(path, lines:Array<String>){
-    var f =neko.io.File.write(path, true);
+    var f = sys.io.File.write(path, true);
     for (s in lines) f.writeString(s+"\n");
     f.close();
   }
@@ -282,7 +287,7 @@ class Test {
 #if (js || flash9)
     return Date.now().getTime();
 #else
-    return neko.Sys.time();
+    return std.Sys.time();
 #end
   }
 

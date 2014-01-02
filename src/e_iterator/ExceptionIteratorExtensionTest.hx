@@ -1,5 +1,6 @@
-import TestCases;
-using ExceptionIteratorExtension;
+package e_iterator;
+import e_iterator.TestCases;
+using e_iterator.Extension;
 
 class ExceptionIteratorExtensionTest extends TestCases {
 

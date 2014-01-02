@@ -9,6 +9,7 @@
 
 
 */
+package e_iterator;
 
 class ValueIteratorNullValueFound {
   public function new() {

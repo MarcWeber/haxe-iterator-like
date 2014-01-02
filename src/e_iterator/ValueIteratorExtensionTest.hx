@@ -1,4 +1,5 @@
-using ValueIteratorExtension;
+package e_iterator;
+using e_iterator.ValueIteratorExtension;
 
 class ValueIteratorExtensionTest extends TestCases {
 

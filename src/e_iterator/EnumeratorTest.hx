@@ -1,4 +1,5 @@
-using haxe.more.data.Manipulation;
+package e_iterator;
+// using haxe.more.data.Manipulation;
 
 class EnumeratorTest extends TestCases {
 

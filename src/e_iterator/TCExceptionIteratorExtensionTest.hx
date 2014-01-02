@@ -1,5 +1,6 @@
-import TestCases;
-using TExceptionIteratorExtension;
+package e_iterator;
+import e_iterator.TestCases;
+using e_iterator.TExceptionIteratorExtension;
 
 class TCExceptionIteratorExtensionTest extends TestCases {
 

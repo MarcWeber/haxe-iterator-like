@@ -1,3 +1,4 @@
+package e_iterator;
 /*
   description:
   The Std is using a simple iterator interface:
@@ -10,7 +11,7 @@
   flaws: For each element you have to call two functions.
 
   So this E(exception)Iterator tries to use only one function.
-  Instead of hasNext() returning false an TEIteratorEOI is thrown
+  Instead of hasNext() returning false an e_iterator.TEIteratorEOI is thrown
 
   Much inilining can take place. This should result in fast code (?)
 
@@ -25,11 +26,6 @@
 
 
 */
-
-class TEIteratorEOI {
-  public function new() {
-  }
-} // end of items (TODO extend from Exception type?)
 
 interface TEIterator<T> {
   function next():T;
@@ -68,7 +64,7 @@ class TEIteratorExtensions{
   static public function each<T>(i: TEIterator<T>, f:T->Void ){
     try{
       while (true){ f(i.next()); }
-    }catch(e:TEIteratorEOI){
+    }catch(e:e_iterator.EOI){
       // Ignore any errors - end of iterator rearched
     }
   }
@@ -77,7 +73,7 @@ class TEIteratorExtensions{
     return fToEIter(
       function(){
         if (n-- <= 0)
-          throw new TEIteratorEOI(); // why don't I need a colon here?
+          throw new e_iterator.EOI(); // why don't I need a colon here?
         else {
           return i.next();
         }
@@ -105,7 +101,7 @@ class TEIteratorExtensions{
           try{
             e = i.next();
             return true;
-          }catch(e:TEIteratorEOI){
+          }catch(e:e_iterator.EOI){
             return false;
           }
         },
@@ -122,7 +118,7 @@ class TEIteratorExtensions{
       function(){
         if (iter.hasNext())
           return iter.next();
-        else throw new TEIteratorEOI();
+        else throw new EOI();
       });
   }
 
@@ -159,7 +155,7 @@ class TEIteratorExtensions{
         i.next(); c++;
       }
       return 0; // never rearched
-    }catch(e:TEIteratorEOI){
+    }catch(e:e_iterator.EOI){
       return c;
     }
   }
@@ -171,7 +167,7 @@ class TEIteratorExtensions{
         var i = 0;
         return function(){
           if (i >= a.length)
-            throw new TEIteratorEOI();
+            throw new e_iterator.EOI();
           else return a[i++];
         }
       }());

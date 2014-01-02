@@ -1,3 +1,4 @@
+package e_iterator;
 
 class ManualTest extends TestCases {
 

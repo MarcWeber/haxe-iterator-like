@@ -1,3 +1,4 @@
+package e_iterator;
 /*
   same as TExceptionIteratorExtension
 
@@ -8,7 +9,7 @@
 
 */
 
-class TCEIteratorEOI {
+class TCe_iterator.EOI {
   public function new() {
   }
 } // end of items (TODO extend from Exception type?)
@@ -28,7 +29,7 @@ class TCEArrayIterator<T> implements TCEIterator<T>{
 
   function next():T{
     if (this.current == end)
-      throw TCEIteratorEOI()
+      throw TCe_iterator.EOI()
     else return this.a[this.current++];
   }
 }
@@ -57,7 +58,7 @@ class TCEIteratorExtensions{
   static public function each<T>(i: TCEIterator<T>, f:T->Void ){
     try{
       while (true){ f(i.next()); }
-    }catch(e:TCEIteratorEOI){
+    }catch(e:TCe_iterator.EOI){
       // Ignore any errors - end of iterator rearched
     }
   }
@@ -66,7 +67,7 @@ class TCEIteratorExtensions{
     return cast({
       next: function(){
         if (n-- <= 0)
-          throw new TCEIteratorEOI(); // why don't I need a colon here?
+          throw new TCe_iterator.EOI(); // why don't I need a colon here?
         else {
           return i.next();
         }
@@ -96,7 +97,7 @@ class TCEIteratorExtensions{
           try{
             e = i.next();
             return true;
-          }catch(e:TCEIteratorEOI){
+          }catch(e:TCe_iterator.EOI){
             return false;
           }
         },
@@ -113,7 +114,7 @@ class TCEIteratorExtensions{
       next: function(){
         if (iter.hasNext())
           return iter.next();
-        else throw new TCEIteratorEOI();
+        else throw new TCe_iterator.EOI();
       }
     });
   }
@@ -150,7 +151,7 @@ class TCEIteratorExtensions{
         i.next(); c++;
       }
       return null; // never rearched
-    }catch(e:TCEIteratorEOI){
+    }catch(e:TCe_iterator.EOI){
       return return c;
     }
   }

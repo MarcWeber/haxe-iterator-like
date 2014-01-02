@@ -10,7 +10,7 @@
   flaws: For each element you have to call two functions.
 
   So this E(exception)Iterator tries to use only one function.
-  Instead of hasNext() returning false an EIteratorEOI is thrown
+  Instead of hasNext() returning false an e_iterator.EOI is thrown
 
   Much inilining can take place. This should result in fast code (?)
 
@@ -25,15 +25,17 @@
 
 
 */
+package e_iterator;
 
-class EIteratorEOI {
-  public function new() {
-  }
-} // end of items (TODO extend from Exception type?)
+// is EOI now
+// class e_iterator.EOI {
+//   public function new() {
+//   }
+// } // end of items (TODO extend from Exception type?)
 
 typedef EIterator<T>= Void -> T;
 
-class EIteratorExtensions{
+class Extension {
 
   static public function map<A,B>(next:EIterator<A>, f:A->B): EIterator<B> {
     return function(){ return f(next()); };
@@ -52,7 +54,7 @@ class EIteratorExtensions{
   static public function each<T>(next: EIterator<T>, f:T->Void ){
     try{
       while (true){ f(next()); }
-    }catch(e:EIteratorEOI){
+    }catch(e:e_iterator.EOI){
       // Ignore any errors - end of iterator rearched
     }
   }
@@ -60,7 +62,7 @@ class EIteratorExtensions{
   static public function take<T>(next:EIterator<T>, n:Int):EIterator<T>{
     return function(){
       if (n-- <= 0)
-        throw new EIteratorEOI(); // why don't I need a colon here?
+        throw new e_iterator.EOI(); // why don't I need a colon here?
       else {
         return next();
       }
@@ -87,7 +89,7 @@ class EIteratorExtensions{
           try{
             e = next();
             return true;
-          }catch(e:EIteratorEOI){
+          }catch(e:e_iterator.EOI){
             return false;
           }
         },
@@ -103,7 +105,7 @@ class EIteratorExtensions{
     return function(){
       if (iter.hasNext())
         return iter.next();
-      else throw new EIteratorEOI();
+      else throw new e_iterator.EOI();
     }
   }
 
@@ -118,7 +120,7 @@ class EIteratorExtensions{
   static public function fold<T,B>(next:EIterator<T>, f:T -> B -> B, first:B):B{
     var r = first;
     // inline or optimize this!
-    EIteratorExtensions.each(next, function(n){
+    e_iterator.Extension.each(next, function(n){
         r = f(n, r);
     });
     return r;
@@ -126,7 +128,7 @@ class EIteratorExtensions{
 
   static public function array<T>(next:EIterator<T>):Array<T>{
     var a = new Array();
-    EIteratorExtensions.each(next, function(n){ a.push(n); } );
+    e_iterator.Extension.each(next, function(n){ a.push(n); } );
     return a;
   }
 
@@ -138,7 +140,7 @@ class EIteratorExtensions{
         next(); c++;
       }
       return 0; // never rearched
-    }catch(e:EIteratorEOI){
+    }catch(e:e_iterator.EOI){
       return c;
     }
   }
@@ -149,7 +151,7 @@ class EIteratorExtensions{
       var i = 0;
       return function(){
         if (i >= a.length)
-          throw new EIteratorEOI();
+          throw new e_iterator.EOI();
         else return a[i++];
       }
     }();
